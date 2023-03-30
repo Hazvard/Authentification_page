@@ -17,7 +17,7 @@
     //-------------------------
 
     $mysqli = new mysqli("localhost",$login,$password,"authentification_page"); //connexion à la BDD mysql sur localhost, user root et mdp password sur la table boissons.
-        //attention : la table boissons n'est pas créée lors de la connexion, si elle n'existe pas c'est cassé
+    //attention : la table n'est pas créée lors de la connexion, si elle n'existe pas c'est cassé
 
     //Verif connexion
     if ($mysqli -> connect_errno) 
@@ -56,25 +56,41 @@
 
 	    $query->bind_param("ss", $username, $password); //s = string, i = int
 	    $query->execute();
-
     }
+
+    if(isset($_POST["submit_login"])){ // Les tests ne se font que si l'on valide le formulaire
+        global $erreur_login, $exist_user;
+            
+    
+            $select = mysqli_query($mysqli, "SELECT * FROM utilisateur WHERE password ='".$_POST['password_login']."' AND  username = '".$_POST['username_login']."'");
+            if(mysqli_num_rows($select)) {// Si on trouve l'utilisateur dans la base de donnee avec le bon mot de passe
+                $exist_user = true;
+            }else{
+                $erreur_login = true;
+                $exist_user = false;
+            }
+        }
 ?>
 
 <body>
     <div>
         <h1>Connexion</h1>
-        <form class="login_form" method="post" action="#">
+        <form class="submit_login" method="post" action="#">
             <p><label for="Username">Login</label></p>
-            <p><input type="texte" id="username" name="username" placeholder="Entrer votre nom d'utilisateur" required="required"
-                value="<?php if (isset($_POST['login'])) echo $_POST['login']; ?>">
-                <?php global $erreur_login; if ($erreur_login) echo "erreur";?> </p>
+            <p><input type="texte" id="username_login" name="username_login" placeholder="Entrer votre nom d'utilisateur" required="required"
+                value="<?php if (isset($_POST['username_login'])) echo $_POST['username_login']; ?>">
+            </p>
 
             <p><label for="password">mot de passe</label></p>
-            <p><input type="password" value="" id="password_login" name="password" placeholder="Entrer votre mot de passe" required="required">
-            <button class="unmask" type="button" onclick="changer_login()" title="Masque/Démasque le mot de passe">démasquer</button>
-            <?php global $erreur_login; if ($erreur_login) echo "erreur";?></p>
+            <p><input type="password" value="" id="password_login" name="password_login" placeholder="Entrer votre mot de passe" required="required">
+                <button class="unmask" type="button" onclick="changer_login()" title="Masque/Démasque le mot de passe">démasquer</button>
+            </p>
+            <p>
+                <?php global $erreur_login; if ($erreur_login) echo "Utilisateur inconnu";?>
+                <?php global $exist_user; if ($exist_user) echo "Utilisateur reconnu";?>
+            </p>
 
-            <p><button type="submit" id="submit_identification" name="submit_identification">s'identifier</button></p>
+            <p><button type="submit" id="submit_login" name="submit_login">s'identifier</button></p>
             
         </form>
     </div>
@@ -83,7 +99,7 @@
         <form class="submit_signin" method="post" action="#">
             <p><label for="Username">Login</label></p>
             <p><input type="texte" id="username_signin" name="username_signin" placeholder="Entrer votre nom d'utilisateur" required="required"
-                value="<?php if (isset($_POST['login'])) echo $_POST['login']; ?>">
+                value="<?php if (isset($_POST['username_signin'])) echo $_POST['username_signin']; ?>">
                 <?php global $erreur_username_signin; if ($erreur_username_signin) echo "Trop de caractères";?></p>
 
             <p><label for="password">mot de passe</label></p>
