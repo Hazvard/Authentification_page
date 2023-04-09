@@ -7,5 +7,5 @@ USE authentification_page;
 CREATE TABLE
     UTILISATEUR(
         username VARCHAR(50) PRIMARY KEY,
-        password VARCHAR(60) NOT NULL
+        password VARCHAR(90) NOT NULL
     );
