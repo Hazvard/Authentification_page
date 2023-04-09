@@ -53,7 +53,7 @@
 	    $query = $mysqli->prepare($sql);
 
         $username = $_POST["username_signin"];
-	    $password =  hash("sha256",$_POST["password_signin"]);
+	    $password =  hash("sha256", "salage" . $_POST["password_signin"]);
 
 	    $query->bind_param("ss", $username, $password); //s = string, i = int
 	    $query->execute();
@@ -63,7 +63,7 @@
         global $erreur_login, $exist_user;
             
     
-            $select = mysqli_query($mysqli, "SELECT * FROM utilisateur WHERE password ='".hash("sha256",$_POST['password_login'])."' AND  username = '".$_POST['username_login']."'");
+            $select = mysqli_query($mysqli, "SELECT * FROM utilisateur WHERE password ='".hash("sha256","salage" . $_POST['password_login'])."' AND  username = '".$_POST['username_login']."'");
             if(mysqli_num_rows($select)) {// Si on trouve l'utilisateur dans la base de donnee avec le bon mot de passe
                 $exist_user = true;
             }else{

@@ -1,0 +1,1 @@
+Le hashage est différent de celui sans sel.
