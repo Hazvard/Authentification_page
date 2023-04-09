@@ -54,7 +54,7 @@
 
         $username = $_POST["username_signin"];
         // On ajoute le salt = salage
-	    $password =  hash("sha256", "salage" . $_POST["password_signin"]);
+	    $password =  password_hash($_POST["password_signin"], PASSWORD_DEFAULT);
 
 	    $query->bind_param("ss", $username, $password); //s = string, i = int
 	    $query->execute();
@@ -64,9 +64,16 @@
         global $erreur_login, $exist_user;
             
     
-            $select = mysqli_query($mysqli, "SELECT * FROM utilisateur WHERE password ='".hash("sha256","salage" . $_POST['password_login'])."' AND  username = '".$_POST['username_login']."'");
-            if(mysqli_num_rows($select)) {// Si on trouve l'utilisateur dans la base de donnee avec le bon mot de passe
-                $exist_user = true;
+            $select = mysqli_query($mysqli, "SELECT * FROM utilisateur WHERE  username = '".$_POST['username_login']."'");
+            if(mysqli_num_rows($select)) {// Si on trouve l'utilisateur dans la base de donnee
+                $row = $select->fetch_row();
+                $password_hash = $row['1'];
+                if(password_verify($_POST["password_login"],$password_hash  ))
+                    $exist_user = true;
+                else{
+                    $erreur_login = true;
+                    $exist_user = false;
+                }
             }else{
                 $erreur_login = true;
                 $exist_user = false;
