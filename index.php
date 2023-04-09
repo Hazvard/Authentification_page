@@ -11,6 +11,8 @@
 
 
 <?php
+
+    
     
     // Rentrer vos identifiants
     $login = "root"; 
@@ -24,7 +26,13 @@
     if ($mysqli -> connect_errno) 
         echo "Connexion à la base de données impossible: " . $mysqli -> connect_error;
         
-
+    function rand_char($length) {
+        $random = '';
+        for ($i = 0; $i < $length; $i++) {
+          $random .= chr(mt_rand(33, 126));
+        }
+        return $random;
+    }
 
     
     if(isset($_POST["submit_signin"])){ // Les tests ne se font que si l'on valide le formulaire
@@ -48,15 +56,24 @@
     if (isset($_POST["submit_signin"]) && !$erreur_signin) {
         // S'il n'y a pas d'erreurs on enregistre dans la base de donnee
         
+
+        
         //BDD
-        $sql = "INSERT INTO `utilisateur` (`username`, `password`) VALUES (?, ?)";
+        $sql = "INSERT INTO `utilisateur` (`username`, `password`, `symkey`, `iv`, `tag` ) VALUES (?, ?, ?, ?, ?)";
 	    $query = $mysqli->prepare($sql);
 
         $username = $_POST["username_signin"];
-        // On ajoute le salt = salage
-	    $password =  password_hash($_POST["password_signin"], PASSWORD_DEFAULT);
-
-	    $query->bind_param("ss", $username, $password); //s = string, i = int
+        // Symetrique
+        $plaintext = password_hash($_POST["password_signin"], PASSWORD_DEFAULT);
+        $cipher = "aes-128-gcm";
+        if (in_array($cipher, openssl_get_cipher_methods())){
+            $key = rand_char(2);
+            $ivlen = openssl_cipher_iv_length($cipher);
+            $iv = openssl_random_pseudo_bytes($ivlen);
+            $password = openssl_encrypt($plaintext, $cipher, $key, $options=0, $iv, $tag);
+        }
+	    
+	    $query->bind_param("sssss", $username, $password, $key,  $iv, $tag); //s = string, i = int
 	    $query->execute();
     }
 
@@ -67,7 +84,13 @@
             $select = mysqli_query($mysqli, "SELECT * FROM utilisateur WHERE  username = '".$_POST['username_login']."'");
             if(mysqli_num_rows($select)) {// Si on trouve l'utilisateur dans la base de donnee
                 $row = $select->fetch_row();
-                $password_hash = $row['1'];
+                $ciphertext = $row['1'];
+                $cipher = "aes-128-gcm";
+                $key = $row['2'];
+                $iv = $row['3'];
+                $tag = $row['4'];
+
+                $password_hash = openssl_decrypt($ciphertext, $cipher, $key, $options=0, $iv, $tag);
                 if(password_verify($_POST["password_login"],$password_hash  ))
                     $exist_user = true;
                 else{
