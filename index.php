@@ -53,6 +53,7 @@
 	    $query = $mysqli->prepare($sql);
 
         $username = $_POST["username_signin"];
+        // On ajoute le salt = salage
 	    $password =  hash("sha256", "salage" . $_POST["password_signin"]);
 
 	    $query->bind_param("ss", $username, $password); //s = string, i = int
